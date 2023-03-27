@@ -3,15 +3,19 @@ package com.example.labjava.counter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class Counter {
+public class CounterThread extends Thread {
     private static int counter = 0;
 
-    synchronized public static void inc() {
+    public CounterThread() {
+        super();
+    }
+
+    @Override
+    synchronized public void start() {
         counter++;
     }
 
     synchronized public static int getCounter() {
         return counter;
     }
-
 }

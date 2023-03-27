@@ -1,7 +1,7 @@
 package com.example.labjava.controllers;
 
-import com.example.labjava.counter.Counter;
 import com.example.labjava.cache.Cache;
+import com.example.labjava.counter.CounterThread;
 import com.example.labjava.exceptions.BadArgumentsException;
 import com.example.labjava.exceptions.DivideException;
 import com.example.labjava.models.TimeModel;
@@ -22,17 +22,19 @@ public class TimeController {
     private final TimeService timeService;
     private final TimeModel timeModel;
     private final Cache<Double, Double> cache;
+    private final CounterThread counterThread;
 
     @Autowired
-    public TimeController(TimeService timeService, TimeModel timeModel, Cache<Double, Double> cache) {
+    public TimeController(TimeService timeService, TimeModel timeModel, Cache<Double, Double> cache, CounterThread counterThread) {
         this.timeService = timeService;
         this.timeModel = timeModel;
         this.cache = cache;
+        this.counterThread = counterThread;
     }
 
     @GetMapping("/time")
     public ResponseEntity<TimeResponse> calculateTime(@RequestParam double distance, @RequestParam double speed) throws BadArgumentsException, DivideException {
-        Counter.inc();
+        counterThread.start();
         timeService.validate(distance, speed);
         logger.info("Check parametes");
 
@@ -53,7 +55,7 @@ public class TimeController {
         timeModel.setDistance(distance);
         timeModel.setSpeed(speed);
 
-        TimeResponse response = new TimeResponse(Counter.getCounter(), time);
+        TimeResponse response = new TimeResponse(CounterThread.getCounter(), time);
 
         return ResponseEntity.ok(response);
     }
