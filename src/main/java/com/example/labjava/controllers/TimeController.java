@@ -21,11 +21,11 @@ public class TimeController {
     private static final Logger logger = LogManager.getLogger(TimeController.class);
     private final TimeService timeService;
     private final TimeModel timeModel;
-    private final Cache<Double, Double> cache;
+    private final Cache<String, Double> cache;
     private final CounterThread counterThread;
 
     @Autowired
-    public TimeController(TimeService timeService, TimeModel timeModel, Cache<Double, Double> cache, CounterThread counterThread) {
+    public TimeController(TimeService timeService, TimeModel timeModel, Cache<String, Double> cache, CounterThread counterThread) {
         this.timeService = timeService;
         this.timeModel = timeModel;
         this.cache = cache;
@@ -35,18 +35,22 @@ public class TimeController {
     @GetMapping("/time")
     public ResponseEntity<TimeResponse> calculateTime(@RequestParam double distance, @RequestParam double speed) throws BadArgumentsException, DivideException {
         counterThread.start();
+
         timeService.validate(distance, speed);
+
         logger.info("Check parametes");
 
+        String cacheKey = String.format("%.2f_%.2f", distance, speed);
+
         double time;
-        if (!cache.contain(distance)) {
+        if (cache.contain(cacheKey)) {
+            logger.info("Get from cache");
+            time = cache.get(cacheKey);
+        } else {
             logger.info("Calculate");
             time = timeService.calculate(distance, speed);
             logger.info("Push to cache");
-            cache.push(distance, time);
-        } else {
-            logger.info("Get from cache");
-            time = cache.get(distance);
+            cache.push(cacheKey, time);
         }
 
         logger.info(String.format("Time for distance %f and speed %f is %f", distance, speed, time));
@@ -59,6 +63,7 @@ public class TimeController {
 
         return ResponseEntity.ok(response);
     }
+
 }
 
 
