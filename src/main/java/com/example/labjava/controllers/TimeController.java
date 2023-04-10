@@ -7,13 +7,21 @@ import com.example.labjava.exceptions.DivideException;
 import com.example.labjava.models.TimeModel;
 import com.example.labjava.services.TimeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 @RestController
 public class TimeController {
@@ -25,7 +33,10 @@ public class TimeController {
     private final CounterThread counterThread;
 
     @Autowired
-    public TimeController(TimeService timeService, TimeModel timeModel, Cache<String, Double> cache, CounterThread counterThread) {
+    public TimeController(TimeService timeService,
+                          TimeModel timeModel,
+                          Cache<String, Double> cache,
+                          CounterThread counterThread) {
         this.timeService = timeService;
         this.timeModel = timeModel;
         this.cache = cache;
@@ -33,7 +44,7 @@ public class TimeController {
     }
 
     @GetMapping("/time")
-    public ResponseEntity<TimeResponse> calculateTime(@RequestParam double distance, @RequestParam double speed) throws BadArgumentsException, DivideException {
+    public ResponseEntity<?> calculateTime(@RequestParam double distance, @RequestParam double speed) throws BadArgumentsException, DivideException {
         counterThread.start();
 
         timeService.validate(distance, speed);
@@ -43,15 +54,8 @@ public class TimeController {
         String cacheKey = String.format("%.2f_%.2f", distance, speed);
 
         double time;
-        if (cache.contain(cacheKey)) {
-            logger.info("Get from cache");
-            time = cache.get(cacheKey);
-        } else {
-            logger.info("Calculate");
-            time = timeService.calculate(distance, speed);
-            logger.info("Push to cache");
-            cache.push(cacheKey, time);
-        }
+
+        time = getTime(distance, speed, cacheKey);
 
         logger.info(String.format("Time for distance %f and speed %f is %f", distance, speed, time));
 
@@ -64,12 +68,52 @@ public class TimeController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/calculate")
+    public ResponseEntity<?> calculateBulk(@RequestBody DistanceSpeedRequest request) throws BadArgumentsException {
+        List<TimeResponse> responses = new ArrayList<>();
+
+        List<Double> distances = request.getDistances();
+        List<Double> speeds = request.getSpeeds();
+
+        timeService.validate(distances, speeds);
+        logger.info("Check parametes");
+
+        IntStream.range(0, Math.min(distances.size(), speeds.size()))
+                .forEach(i -> {
+                    counterThread.start();
+                    double distance = distances.get(i);
+                    double speed = speeds.get(i);
+                    double time;
+                    try {
+
+                        String cacheKey = String.format("%.2f_%.2f", distance, speed);
+                        time = getTime(distance, speed, cacheKey);
+
+                        logger.info(String.format("Time for distance %f and speed %f is %f", distance, speed, time));
+
+                        TimeResponse response = new TimeResponse(CounterThread.getCounter(), time);
+                        responses.add(response);
+
+                    } catch (DivideException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                });
+
+        return ResponseEntity.ok(responses);
+
+    }
+
+    private double getTime(@RequestParam double distance, @RequestParam double speed, String cacheKey) throws DivideException {
+        double time;
+        if (cache.contain(cacheKey)) {
+            logger.info("Get from cache");
+            time = cache.get(cacheKey);
+        } else {
+            logger.info("Calculate");
+            time = timeService.calculate(distance, speed);
+            logger.info("Push to cache");
+            cache.push(cacheKey, time);
+        }
+        return time;
+    }
 }
-
-
-
-
-
-
-
-
