@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -43,6 +44,14 @@ public class TimeController {
         this.counterThread = counterThread;
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<?> viewCounter() {
+        logger.info(String.format("Counter %d", CounterThread.getCounter()));
+
+        CounterResponse response = new CounterResponse(CounterThread.getCounter());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/time")
     public ResponseEntity<?> calculateTime(@RequestParam double distance, @RequestParam double speed) throws BadArgumentsException, DivideException {
         counterThread.start();
@@ -57,7 +66,7 @@ public class TimeController {
 
         time = getTime(distance, speed, cacheKey);
 
-        logger.info(String.format("Time for distance %f and speed %f is %f", distance, speed, time));
+        logger.info(String.format("Time for distance %f and speed %f is %f. Counter %d", distance, speed, time, CounterThread.getCounter()));
 
         timeModel.setTime(time);
         timeModel.setDistance(distance);
@@ -69,7 +78,7 @@ public class TimeController {
     }
 
     @PostMapping("/calculate")
-    public ResponseEntity<?> calculateBulk(@RequestBody DistanceSpeedRequest request) throws BadArgumentsException {
+    public ResponseEntity<?> calculate(@RequestBody DistanceSpeedRequest request) throws BadArgumentsException {
         List<TimeResponse> responses = new ArrayList<>();
 
         List<Double> distances = request.getDistances();
@@ -84,12 +93,13 @@ public class TimeController {
                     double distance = distances.get(i);
                     double speed = speeds.get(i);
                     double time;
+
                     try {
 
                         String cacheKey = String.format("%.2f_%.2f", distance, speed);
                         time = getTime(distance, speed, cacheKey);
 
-                        logger.info(String.format("Time for distance %f and speed %f is %f", distance, speed, time));
+                        logger.info(String.format("Time for distance %f and speed %f is %f. Counter %d", distance, speed, time, CounterThread.getCounter()));
 
                         TimeResponse response = new TimeResponse(CounterThread.getCounter(), time);
                         responses.add(response);
@@ -97,9 +107,14 @@ public class TimeController {
                     } catch (DivideException e) {
                         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
                     }
+
                 });
 
-        return ResponseEntity.ok(responses);
+        StatResponse statResponse = new StatResponse(distances, speeds);
+
+        CalcResponse calculationResponse = new CalcResponse(statResponse, responses);
+
+        return ResponseEntity.ok(calculationResponse);
 
     }
 
