@@ -11,11 +11,11 @@ public class CounterThread extends Thread {
     }
 
     @Override
-    synchronized public void start() {
+    public synchronized void start() {
         counter++;
     }
 
-    synchronized public static int getCounter() {
+    public static synchronized int getCounter() {
         return counter;
     }
 }

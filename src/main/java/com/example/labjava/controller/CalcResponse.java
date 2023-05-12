@@ -1,4 +1,4 @@
-package com.example.labjava.controllers;
+package com.example.labjava.controller;
 
 import java.util.List;
 

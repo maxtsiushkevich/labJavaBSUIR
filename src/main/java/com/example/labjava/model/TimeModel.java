@@ -1,4 +1,4 @@
-package com.example.labjava.models;
+package com.example.labjava.model;
 
 import org.springframework.stereotype.Component;
 

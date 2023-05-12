@@ -1,7 +1,7 @@
-package com.example.labjava.services;
+package com.example.labjava.service;
 
-import com.example.labjava.exceptions.BadArgumentsException;
-import com.example.labjava.exceptions.DivideException;
+import com.example.labjava.exception.BadArgumentsException;
+import com.example.labjava.exception.DivideException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

@@ -1,6 +1,5 @@
-package com.example.labjava.controllers;
+package com.example.labjava.controller;
 
-import java.util.Collections;
 import java.util.List;
 
 public class StatResponse {

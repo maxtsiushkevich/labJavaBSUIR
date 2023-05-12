@@ -1,11 +1,11 @@
-package com.example.labjava.controllers;
+package com.example.labjava.controller;
 
 import com.example.labjava.cache.Cache;
 import com.example.labjava.counter.CounterThread;
-import com.example.labjava.exceptions.BadArgumentsException;
-import com.example.labjava.exceptions.DivideException;
-import com.example.labjava.models.TimeModel;
-import com.example.labjava.services.TimeService;
+import com.example.labjava.exception.BadArgumentsException;
+import com.example.labjava.exception.DivideException;
+import com.example.labjava.model.TimeModel;
+import com.example.labjava.service.TimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -62,9 +61,7 @@ public class TimeController {
 
         String cacheKey = String.format("%.2f_%.2f", distance, speed);
 
-        double time;
-
-        time = getTime(distance, speed, cacheKey);
+        double time = getTime(distance, speed, cacheKey);
 
         logger.info(String.format("Time for distance %f and speed %f is %f. Counter %d", distance, speed, time, CounterThread.getCounter()));
 

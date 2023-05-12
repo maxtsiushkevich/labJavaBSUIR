@@ -1,8 +1,8 @@
 package com.example.labjava;
 
-import com.example.labjava.exceptions.BadArgumentsException;
-import com.example.labjava.exceptions.DivideException;
-import com.example.labjava.services.TimeService;
+import com.example.labjava.exception.BadArgumentsException;
+import com.example.labjava.exception.DivideException;
+import com.example.labjava.service.TimeService;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
