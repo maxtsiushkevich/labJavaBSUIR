@@ -1,4 +1,7 @@
-package com.example.labjava.controller;
+package com.example.labjava.response;
+
+import com.example.labjava.response.StatResponse;
+import com.example.labjava.response.TimeResponse;
 
 import java.util.List;
 

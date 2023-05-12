@@ -1,4 +1,4 @@
-package com.example.labjava.controller;
+package com.example.labjava.request;
 
 import java.util.List;
 
