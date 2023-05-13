@@ -1,5 +1,6 @@
 package com.example.labjava.controller;
 
+import com.example.labjava.async.ResultAsync;
 import com.example.labjava.cache.Cache;
 import com.example.labjava.counter.CounterThread;
 import com.example.labjava.exception.BadArgumentsException;
@@ -8,14 +9,11 @@ import com.example.labjava.model.TimeModel;
 import com.example.labjava.response.CounterResponse;
 import com.example.labjava.response.ResultResponse;
 import com.example.labjava.response.TimeResponse;
+import com.example.labjava.service.TimeControllerService;
 import com.example.labjava.service.TimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,14 +28,21 @@ public class TimeController {
     private final TimeService timeService;
     private final Cache<String, Double> cache;
     private final CounterThread counterThread;
+    private final TimeControllerService timeControllerService;
+
+    private final ResultAsync resultAsync;
 
     @Autowired
     public TimeController(TimeService timeService,
                           Cache<String, Double> cache,
-                          CounterThread counterThread) {
+                          CounterThread counterThread,
+                          TimeControllerService timeControllerService,
+                          ResultAsync resultAsync) {
         this.timeService = timeService;
         this.cache = cache;
         this.counterThread = counterThread;
+        this.timeControllerService = timeControllerService;
+        this.resultAsync = resultAsync;
     }
 
     @GetMapping("/count")
@@ -99,4 +104,27 @@ public class TimeController {
         }
         return time;
     }
+
+
+    @PostMapping("/write")
+    public Integer methodDecode(@RequestBody TimeModel request) throws BadArgumentsException {
+
+        timeService.validate(request.getDistance(), request.getSpeed());
+
+        TimeModel result = timeControllerService.findByDistanceAndSpeed(request.getDistance(), request.getSpeed());
+
+        if (result == null) {
+            int id = resultAsync.createHalfEmptyModel(request);
+            resultAsync.computeAsync(id);
+
+            return id;
+        } else
+            return result.getId();
+    }
+
+    @GetMapping("/find/{id}")
+    public TimeModel result(@PathVariable("id") int id) {
+        return timeControllerService.findOne(id);
+    }
+
 }

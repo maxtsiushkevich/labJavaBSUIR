@@ -1,11 +1,22 @@
 package com.example.labjava.model;
 
+import jakarta.persistence.*;
 import org.springframework.stereotype.Component;
 
+@Entity
+@Table(name = "db")
 @Component
 public class TimeModel {
+
+    @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    @Column(name = "distance")
     private double distance;
+    @Column(name = "speed")
     private double speed;
+    @Column(name = "time")
     private double time;
 
     public double getDistance() {
@@ -31,4 +42,8 @@ public class TimeModel {
     public void setTime(double time) {
         this.time = time;
     }
+
+    public void setId(int id) { this.id = id; }
+
+    public int getId() { return id; }
 }
