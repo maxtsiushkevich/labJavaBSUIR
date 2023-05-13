@@ -20,15 +20,10 @@ public class ResultAsync {
     }
 
 
-    public int createHalfEmptyModel(TimeModel result) {
-        TimeModel result1 = new TimeModel();
-
-        result1.setDistance(result.getDistance());
-        result1.setSpeed(result.getSpeed());
-
-        resultService.save(result1);
-
-        return result1.getId();
+    public int createHalfEmptyModel(TimeModel result)
+    {
+        resultService.save(result);
+        return result.getId();
     }
 
 
