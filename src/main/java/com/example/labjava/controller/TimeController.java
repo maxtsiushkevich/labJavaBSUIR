@@ -114,7 +114,7 @@ public class TimeController {
         TimeModel result = timeControllerService.findByDistanceAndSpeed(request.getDistance(), request.getSpeed());
 
         if (result == null) {
-            int id = resultAsync.createHalfEmptyModel(request);
+            int id = resultAsync.saveModel(request);
             resultAsync.computeAsync(id);
 
             return id;

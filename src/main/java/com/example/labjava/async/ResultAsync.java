@@ -20,7 +20,7 @@ public class ResultAsync {
     }
 
 
-    public int createHalfEmptyModel(TimeModel result)
+    public int saveModel(TimeModel result)
     {
         resultService.save(result);
         return result.getId();
